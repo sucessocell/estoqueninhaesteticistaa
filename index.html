@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Estoque da Ninha Esteticista</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fdf6f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #c2185b;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+    }
+    .totais {
+      text-align: right;
+      font-weight: bold;
+      margin-bottom: 20px;
+      font-size: 18px;
+      color: #333;
+    }
+    .categoria {
+      margin-top: 40px;
+    }
+    .categoria h2 {
+      background-color: #c2185b;
+      color: white;
+      padding: 10px;
+      margin: 0;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .categoria button {
+      background: white;
+      color: #c2185b;
+      border: 2px solid white;
+      font-weight: bold;
+      padding: 5px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #fce4ec;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 5px;
+    }
+    .totalProduto {
+      font-weight: bold;
+      color: #444;
+    }
+    .excluir-btn {
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 5px 8px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    @media (max-width: 600px) {
+      th, td {
+        font-size: 13px;
+        padding: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Estoque da Ninha Esteticista</h1>
+    <div class="totais">
+      Total geral: R$ <span id="somaGeral">0,00</span>
+    </div>
+    <div id="tabelaEstoque"></div>
+  </div>
+
+  <script>
+    let produtos = [
+      {categoria:"Facial",produto:"Água Micelar",marca:""},
+      {categoria:"Facial",produto:"Sérum Vitamina C",marca:""},
+      {categoria:"Facial",produto:"Protetor Solar FPS 60",marca:""},
+      {categoria:"Facial",produto:"Hidratante Facial",marca:""},
+      {categoria:"Facial",produto:"Máscara de Argila",marca:""},
+
+      {categoria:"Corporal",produto:"Creme Redutor",marca:""},
+      {categoria:"Corporal",produto:"Loção Hidratante Corporal",marca:""},
+      {categoria:"Corporal",produto:"Esfoliante Corporal",marca:""},
+      {categoria:"Corporal",produto:"Óleo de Massagem",marca:""},
+      {categoria:"Corporal",produto:"Gel para Celulite",marca:""},
+
+      {categoria:"Depilação",produto:"Cera Quente",marca:""},
+      {categoria:"Depilação",produto:"Cera Roll-on",marca:""},
+      {categoria:"Depilação",produto:"Óleo Pós-Depilação",marca:""},
+      {categoria:"Depilação",produto:"Papel para Depilação",marca:""},
+
+      {categoria:"Equipamentos",produto:"Máscara de LED",marca:""},
+      {categoria:"Equipamentos",produto:"Vaporizador Facial",marca:""},
+      {categoria:"Equipamentos",produto:"Aquecedor de Cera",marca:""},
+
+      {categoria:"Olhos e Sobrancelhas",produto:"Henna para Sobrancelha",marca:""},
+      {categoria:"Olhos e Sobrancelhas",produto:"Lápis de Sobrancelha",marca:""},
+      {categoria:"Olhos e Sobrancelhas",produto:"Máscara de Cílios",marca:""},
+
+      {categoria:"Unhas e Mãos",produto:"Creme para Cutículas",marca:""},
+      {categoria:"Unhas e Mãos",produto:"Removedor de Esmalte",marca:""},
+      {categoria:"Unhas e Mãos",produto:"Esmalte",marca:""},
+      {categoria:"Unhas e Mãos",produto:"Lixa de Unha",marca:""},
+      {categoria:"Unhas e Mãos",produto:"Base Fortalecedora",marca:""},
+    ];
+
+    function salvar() {
+      const dados = {};
+      document.querySelectorAll('tr[data-produto]').forEach(tr => {
+        const produto = tr.dataset.produto;
+        const marca = tr.querySelector('.marca').value;
+        const qtd = parseFloat(tr.querySelector('.qtd').value) || 0;
+        const valor = parseFloat(tr.querySelector('.valor').value) || 0;
+        dados[produto] = {marca, qtd, valor};
+      });
+      localStorage.setItem('estoqueNinha', JSON.stringify(dados));
+      localStorage.setItem('listaProdutosNinha', JSON.stringify(produtos));
+    }
+
+    function carregar() {
+      const salvos = JSON.parse(localStorage.getItem('estoqueNinha') || '{}');
+      const salvosProdutos = JSON.parse(localStorage.getItem('listaProdutosNinha'));
+      if (salvosProdutos) produtos = salvosProdutos;
+
+      let totalGeral = 0;
+      const container = document.getElementById('tabelaEstoque');
+      container.innerHTML = '';
+      const categorias = [...new Set(produtos.map(p => p.categoria))];
+
+      categorias.forEach(cat => {
+        const section = document.createElement('div');
+        section.className = 'categoria';
+
+        const header = document.createElement('h2');
+        header.innerHTML = `${cat} <button onclick="adicionarProduto('${cat}')">+ Adicionar Produto</button>`;
+        section.appendChild(header);
+
+        const tabela = document.createElement('table');
+        tabela.innerHTML = `
+          <tr>
+            <th>Produto</th>
+            <th>Marca</th>
+            <th>Quantidade</th>
+            <th>Valor Unitário (R$)</th>
+            <th>Total (R$)</th>
+            <th>Ações</th>
+          </tr>
+        `;
+
+        produtos.filter(p => p.categoria === cat).forEach((prod, index) => {
+          const dados = salvos[prod.produto] || {marca:'', qtd:'', valor:''};
+          const total = (dados.qtd || 0) * (dados.valor || 0);
+          totalGeral += total;
+
+          const tr = document.createElement('tr');
+          tr.dataset.produto = prod.produto;
+          tr.innerHTML = `
+            <td><input type="text" value="${prod.produto}" oninput="salvar(); atualizarTotais()"></td>
+            <td><input type="text" class="marca" value="${dados.marca}" oninput="salvar(); atualizarTotais()"></td>
+            <td><input type="number" class="qtd" min="0" value="${dados.qtd}" oninput="salvar(); atualizarTotais()"></td>
+            <td><input type="number" class="valor" min="0" step="0.01" value="${dados.valor}" oninput="salvar(); atualizarTotais()"></td>
+            <td class="totalProduto">R$ ${(total).toFixed(2)}</td>
+            <td><button class="excluir-btn" onclick="excluirProduto('${prod.produto}')">🗑️</button></td>
+          `;
+          tabela.appendChild(tr);
+        });
+
+        section.appendChild(tabela);
+        container.appendChild(section);
+      });
+
+      document.getElementById('somaGeral').innerText = totalGeral.toFixed(2);
+    }
+
+    function atualizarTotais() {
+      let totalGeral = 0;
+      document.querySelectorAll('tr[data-produto]').forEach(tr => {
+        const qtd = parseFloat(tr.querySelector('.qtd').value) || 0;
+        const valor = parseFloat(tr.querySelector('.valor').value) || 0;
+        const total = qtd * valor;
+        tr.querySelector('.totalProduto').innerText = 'R$ ' + total.toFixed(2);
+        totalGeral += total;
+      });
+      document.getElementById('somaGeral').innerText = totalGeral.toFixed(2);
+      salvar();
+    }
+
+    function adicionarProduto(categoria) {
+      const nome = prompt("Digite o nome do novo produto:");
+      if (!nome) return;
+      produtos.push({categoria: categoria, produto: nome, marca: ""});
+      salvar();
+      carregar();
+    }
+
+    function excluirProduto(nomeProduto) {
+      if (confirm(`Deseja realmente excluir "${nomeProduto}"?`)) {
+        produtos = produtos.filter(p => p.produto !== nomeProduto);
+        salvar();
+        carregar();
+      }
+    }
+
+    carregar();
+  </script>
+</body>
+</html>
