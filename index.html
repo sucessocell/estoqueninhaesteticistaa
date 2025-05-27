@@ -231,6 +231,36 @@
     }
 
     carregar();
-  </script>
-</body>
+  </script> 
+</body><script type="module">
+  // Importando Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+  import { getFirestore, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+
+  // 🔥 Configuração do Firebase - Cole suas credenciais aqui
+  const firebaseConfig = {
+    apiKey: "AIzaSyDrdN1i9yUICguQDbZQP2dW6l9wZCfwF18",
+    authDomain: "estoque-ninha.firebaseapp.com",
+    projectId: "estoque-ninha",
+    storageBucket: "estoque-ninha.firebasestorage.app",
+    messagingSenderId: "21410694533",
+    appId: "1:21410694533:web:59c12f307ad29ba58f70ec"
+  };
+
+  // Inicializando Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Função para salvar um produto no Firebase
+  async function salvarProduto(produto, marca, qtd, valor) {
+    await setDoc(doc(db, "estoque", produto), { marca, qtd, valor });
+  }
+
+  // Função para carregar um produto do Firebase
+  async function carregarProduto(produto) {
+    const docSnap = await getDoc(doc(db, "estoque", produto));
+    return docSnap.exists() ? docSnap.data() : null;
+  }
+</script>
+
 </html>
