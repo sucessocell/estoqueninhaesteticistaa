@@ -228,4 +228,42 @@
         salvar();
         carregar();
       
-  
+  <script>
+  const SHEET_ID = "10Of9HQAKrXAbgcPVf0slxtDeJLiMIITs04e9qQtWthg";  // Seu ID da planilha
+  const API_KEY = "AIzaSyAJ-Wmua51GjM3I__7WtgukLSiXC2WkWyg";  // Sua chave da API
+  const RANGE = "A:E";  // Colunas que vamos acessar
+
+  async function carregarProdutos() {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.values) {
+      console.log("📊 Dados da planilha carregados:", data.values);
+    } else {
+      console.error("❌ Erro ao carregar os produtos.");
+    }
+  }
+
+  async function salvarProduto(produto, marca, qtd, valor) {
+    const total = qtd * valor;
+    const valores = [[produto, marca, qtd, valor, total]];
+    const body = { values: valores };
+
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/A:E:append?valueInputOption=RAW&key=${API_KEY}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    if (response.ok) {
+      console.log("✅ Produto salvo na planilha:", produto);
+    } else {
+      console.error("❌ Erro ao salvar o produto.");
+    }
+  }
+
+  carregarProdutos();
+</script>
+
